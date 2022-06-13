@@ -88,7 +88,7 @@ class EventPublisher:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Publish MQTT Events to MQTT Broker')
     parser.add_argument('json_data_filename', type=str, help='file name of the json file containing data to publish')
     parser.add_argument('--msg_delay', type=int, default=0, help='The amount of delay between messages (default: 0)')
     args = parser.parse_args()
