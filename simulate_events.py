@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import argparse
 import asyncio
-import socket
+from dataclasses import dataclass
 import uuid
-import os
 import logging
+import os
+import socket
 
 import paho.mqtt.client as mqtt
 from async_helper import AsyncioHelper
@@ -12,8 +14,21 @@ from dotenv import load_dotenv
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 client_id = 'simulate_events_process/' + str(uuid.uuid4())
-# topic = client_id
-LOG.debug("Using client_id / topic: " + client_id)
+
+
+@dataclass
+class MqttHistory:
+    mqttHistoryId: int
+    nodeAddress: int
+    organizationId: str
+    siteId: str
+    areaId: str
+    zoneId: str
+    topic: str
+    payload: str
+    eventId: str
+    eventTime: str
+    processedTime: str
 
 
 class EventPublisher:
@@ -23,7 +38,7 @@ class EventPublisher:
     def on_disconnect(self, client, userdata, rc):
         self.disconnected.set_result(rc)
 
-    async def main(self):
+    async def main(self, filename: str, msg_delay: int = 0):
         self.disconnected = self.loop.create_future()
         self.got_message = None
 
@@ -50,10 +65,18 @@ class EventPublisher:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('json_data_filename', type=str, help='file name of the json file containing data to publish')
+    parser.add_argument('--msg_delay', type=int, default=0, help='The amount of delay between messages (default: 0)')
+    args = parser.parse_args()
+
+    data_filename = args.get('json_data_filename')
+    delay = args.get('msg_delay')
+
     LOG.debug("Starting")
     load_dotenv()
     event_loop = asyncio.get_event_loop()
     publisher = EventPublisher(event_loop)
-    event_loop.run_until_complete(publisher.main())
+    event_loop.run_until_complete(publisher.main(data_filename, delay))
     event_loop.close()
     LOG.debug("Finished")
